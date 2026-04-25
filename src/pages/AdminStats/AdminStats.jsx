@@ -66,7 +66,7 @@ function ChartTooltip({ active, payload, label }) {
 }
 
 /* ── AdminStats page ────────────────────────────── */
-function AdminStats({ admin, onNavigate }) {
+function AdminStats({ admin, onNavigate, onLogout }) {
   const [stats, setStats]     = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -79,7 +79,7 @@ function AdminStats({ admin, onNavigate }) {
   if (loading) {
     return (
       <div className="as-page">
-        <Sidebar activePage="admins" onNavigate={onNavigate} />
+        <Sidebar activePage="admins" onNavigate={onNavigate} onLogout={onLogout}/>
         <main className="as-main">
           <div className="as-loading">
             <div className="as-spinner" />
@@ -95,7 +95,7 @@ function AdminStats({ admin, onNavigate }) {
 
   return (
     <div className="as-page">
-      <Sidebar activePage="admins" onNavigate={onNavigate} />
+      <Sidebar activePage="admins" onNavigate={onNavigate} onLogout={onLogout} />
 
       <main className="as-main">
         {/* Breadcrumb */}

@@ -6,10 +6,17 @@ function CreateAdminModal({ onClose, onSubmit, admin = null }) {
   const isEdit = admin !== null
 
   const [form, setForm] = useState(
-    isEdit
-      ? { firstName: admin.firstName, lastName: admin.lastName, email: admin.email, organization: admin.organization }
-      : { firstName: '', lastName: '', email: '', organization: '' }
-  )
+  isEdit
+    ? {
+        firstName: admin.firstName,
+        lastName: admin.lastName,
+        email: admin.email,
+        organization: admin.organization,
+        phone: admin.phone || '',     
+      }
+    : { firstName: '', lastName: '', email: '', organization: '', phone: '' } 
+)
+
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
 
@@ -20,6 +27,9 @@ function CreateAdminModal({ onClose, onSubmit, admin = null }) {
     if (!form.email.trim()) errs.email = 'Champ requis'
     else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Email invalide'
     if (!form.organization.trim()) errs.organization = 'Champ requis'
+    if (form.phone && !/^\+?[\d\s\-()]{7,15}$/.test(form.phone))
+      errs.phone = 'Numéro invalide' 
+    else if (!form.phone.trim()) errs.phone = 'Champ requis'                                      
     return errs
   }
 
@@ -52,6 +62,15 @@ function CreateAdminModal({ onClose, onSubmit, admin = null }) {
           </div>
 
           <Field label="Email" name="email" type="email" value={form.email} onChange={handleChange} error={errors.email} placeholder="admin@example.com" />
+            <Field
+        label="Téléphone"
+        name="phone"
+        type="tel"
+        value={form.phone}
+        onChange={handleChange}
+        error={errors.phone}
+        placeholder="+21622333444"
+      />
           <Field label="Nom de l'organisation" name="organization" value={form.organization} onChange={handleChange} error={errors.organization} placeholder="Ex: ACME Corp" />
 
           {!isEdit && (

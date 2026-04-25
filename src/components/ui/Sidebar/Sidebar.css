@@ -10,7 +10,23 @@
   top: 0;
   height: 100vh;
 }
+.btn-logout {
+  margin-top: 12px;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid #e53e3e;
+  color: #e53e3e;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.2s, color 0.2s;
+}
 
+.btn-logout:hover {
+  background: #e53e3e;
+  color: #fff;
+}
 .sidebar-logo {
   display: flex;
   align-items: center;

@@ -1,4 +1,5 @@
 import './Sidebar.css'
+import { logout } from '../../../services/auth.service'
 
 const NAV_ITEMS = [
   { key: 'dashboard', icon: '📊', label: 'Dashboard' },
@@ -6,7 +7,12 @@ const NAV_ITEMS = [
   { key: 'settings',  icon: '⚙️', label: 'Paramètres' },
 ]
 
-function Sidebar({ activePage, onNavigate }) {
+function Sidebar({ activePage, onNavigate, onLogout }) {
+  const handleLogout = async () => {
+    await logout()
+    onLogout()
+  }
+
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
@@ -33,6 +39,11 @@ function Sidebar({ activePage, onNavigate }) {
           <span className="user-name">Super Admin</span>
           <span className="user-role">super-admin</span>
         </div>
+
+        {/* 👇 Logout button */}
+        <button className="btn-logout" onClick={handleLogout}>
+          🚪 Logout
+        </button>
       </div>
     </aside>
   )

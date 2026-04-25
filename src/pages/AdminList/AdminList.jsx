@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
-import { getAdmins, createAdmin, updateAdmin, deleteAdmin } from '../../services/adminService'
-import { sendActivationEmail } from '../../services/emailService'
+import { getAdmins, createAdmin, updateAdmin, deleteAdmin } from '../../services/admin.service'
 import CreateAdminModal from '../../components/modals/CreateAdminModal'
-import EmailSentModal from '../../components/modals/EmailSentModal'
 import Sidebar from '../../components/ui/Sidebar/Sidebar'
 import './AdminList.css'
 
@@ -22,7 +20,7 @@ function StatusBadge({ status }) {
   )
 }
 
-function AdminList({ onNavigate, onViewStats }) {
+function AdminList({ onNavigate, onViewStats, onLogout }) {
   const [admins, setAdmins] = useState([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState(null)         // null | { mode: 'create' } | { mode: 'edit', admin }
@@ -44,54 +42,39 @@ function AdminList({ onNavigate, onViewStats }) {
 
   /* ── Create ── */
   const handleCreate = async (formData) => {
-    let newAdmin
     try {
-      newAdmin = await createAdmin(formData)
-    } catch {
-      showToast('Erreur lors de la création du compte.', 'error')
-      return
-    }
-
-    const activationLink = `${window.location.origin}${window.location.pathname}?token=${newAdmin.activationToken}`
-
-    try {
-      await sendActivationEmail(newAdmin, activationLink, newAdmin.generatedPassword)
-    } catch (err) {
-      // Account was created — show it in the list but warn about email failure
-      console.error('[EmailService] Failed to send email:', err)
-      setAdmins((prev) => [newAdmin, ...prev])
+      await createAdmin(formData)
+      // Refresh the list to get the new admin from backend
+      const updatedList = await getAdmins()
+      setAdmins(updatedList)
       setModal(null)
-      showToast("Compte créé mais l'envoi de l'email a échoué. Vérifiez la configuration EmailJS.", 'error')
-      return
+      showToast('Compte admin créé et email envoyé.', 'success')
+    } catch (err) {
+      showToast(err.message || 'Erreur lors de la création du compte.', 'error')
     }
-
-    setAdmins((prev) => [newAdmin, ...prev])
-    setModal(null)
-    setEmailModal({ admin: newAdmin, activationLink, generatedPassword: newAdmin.generatedPassword })
   }
 
-  /* ── Edit ── */
   const handleUpdate = async (formData) => {
     const { id } = modal.admin
     try {
       const updated = await updateAdmin(id, formData)
-      setAdmins((prev) => prev.map((a) => (a.id === id ? updated : a)))
+      setAdmins((prev) => prev.map((a) => (a.id === id ? { ...a, ...updated } : a))) // 👈 spread old + new
       setModal(null)
       showToast(`Compte de ${updated.firstName} ${updated.lastName} mis à jour.`, 'success')
-    } catch {
-      showToast('Erreur lors de la mise à jour du compte.', 'error')
+    } catch (err) {
+      showToast(err.message || 'Erreur lors de la mise à jour du compte.', 'error')
     }
   }
 
   /* ── Delete ── */
-  const handleDelete = async (id) => {
+ const handleDelete = async (id) => {
     setBusyId(id)
     try {
       await deleteAdmin(id)
       setAdmins((prev) => prev.filter((a) => a.id !== id))
       showToast('Compte admin supprimé.', 'success')
-    } catch {
-      showToast('Erreur lors de la suppression.', 'error')
+    } catch (err) {
+      showToast(err.message || 'Erreur lors de la suppression.', 'error')  // 👈 was hardcoded string
     } finally {
       setBusyId(null)
       setConfirmId(null)
@@ -100,7 +83,7 @@ function AdminList({ onNavigate, onViewStats }) {
 
   return (
     <div className="admin-page">
-      <Sidebar activePage="admins" onNavigate={onNavigate} />
+      <Sidebar activePage="admins" onNavigate={onNavigate}  onLogout={onLogout}/>
 
       {/* Main */}
       <main className="main-content">
@@ -138,6 +121,7 @@ function AdminList({ onNavigate, onViewStats }) {
                   <th>Nom &amp; Prénom</th>
                   <th>Email</th>
                   <th>Organisation</th>
+                  <th>Phone</th>
                   <th>Statut</th>
                   <th>Date de création</th>
                   <th>Actions</th>
@@ -155,9 +139,13 @@ function AdminList({ onNavigate, onViewStats }) {
                       </div>
                     </td>
                     <td className="cell-email">{admin.email}</td>
-                    <td>
+                     <td>
                       <span className="org-badge">{admin.organization}</span>
                     </td>
+                       <td>
+                      <span className="org-badge">{admin.phone}</span>
+                    </td>
+                   
                     <td>
                       <StatusBadge status={admin.status} />
                     </td>
