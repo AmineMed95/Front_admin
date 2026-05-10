@@ -1,23 +1,30 @@
 import { useState } from 'react'
 import './Login.css'
+import { login } from '../../services/auth.service.js'
 
 function Login({ onLogin }) {
   const [form, setForm] = useState({ email: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
     setError('')
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // Mock auth — replace with real API call
-    if (form.email && form.password) {
+    setLoading(true)
+    setError('')
+
+    try {
+      await login({ email: form.email, password: form.password })
       onLogin()
-    } else {
-      setError('Veuillez remplir tous les champs.')
+    } catch (err) {
+      setError(err.message || 'Email ou mot de passe incorrect.')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -79,8 +86,8 @@ function Login({ onLogin }) {
 
           {error && <p className="login-error">{error}</p>}
 
-          <button type="submit" className="btn-login">
-            Se connecter
+          <button type="submit" className="btn-login" disabled={loading}>
+            {loading ? 'Connexion...' : 'Se connecter'}
           </button>
         </form>
       </div>
