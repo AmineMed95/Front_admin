@@ -1,0 +1,217 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f9fafb;
+}
+
+.page-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #f9fafb;
+}
+
+.client-list {
+  padding: 2rem;
+  width: 100%;
+}
+
+.client-list-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.client-list-title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.client-list-sub {
+  margin-top: 0.25rem;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.client-search {
+  width: 260px;
+  max-width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  outline: none;
+  font-size: 0.95rem;
+  background: white;
+}
+
+.client-search:focus {
+  border-color: #6366f1;
+}
+
+.client-state {
+  padding: 3rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.client-state.error {
+  color: #ef4444;
+}
+
+.client-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  background: white;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+}
+
+.client-table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+}
+
+.client-table thead {
+  background: #f3f4f6;
+}
+
+.client-table th {
+  text-align: left;
+  padding: 1rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: #6b7280;
+  letter-spacing: 0.03em;
+}
+
+.client-table td {
+  padding: 1rem;
+  border-top: 1px solid #f3f4f6;
+  color: #374151;
+  font-size: 0.92rem;
+}
+
+.client-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.client-name {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.client-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #6366f1;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.access-code {
+  background: #f3f4f6;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+}
+.client-list-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.status-badge {
+  display: inline-block;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.status-badge.used {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+/* ── Toast notification ────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  padding: 0.85rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  animation: slide-up 0.3s ease;
+  z-index: 200;
+  max-width: 360px;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.toast-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.toast-success {
+  background: #dcfce7;
+  color: #166534;
+  border-left: 4px solid #22c55e;
+}
+
+.toast-error {
+  background: #fee2e2;
+  color: #991b1b;
+  border-left: 4px solid #ef4444;
+}
+
+.status-badge.unused {
+  background: #fef3c7;
+  color: #ca8a04;
+}
+
+.client-empty {
+  text-align: center;
+  padding: 2rem;
+  color: #9ca3af;
+}
+
+@media (max-width: 768px) {
+  .client-list {
+    padding: 1rem;
+  }
+
+  .client-list-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .client-search {
+    width: 100%;
+  }
+}

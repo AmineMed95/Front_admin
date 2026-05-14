@@ -1,13 +1,29 @@
 import './Sidebar.css'
-import { logout } from '../../../services/auth.service'
+import { logout, getUser } from '../../../services/auth.service'
 
-const NAV_ITEMS = [
+const SUPER_ADMIN_NAV = [
   { key: 'dashboard', icon: '📊', label: 'Dashboard' },
   { key: 'admins',    icon: '👥', label: 'Admins'    },
   { key: 'settings',  icon: '⚙️', label: 'Paramètres' },
 ]
 
+const ADMIN_NAV = [
+  { key: 'dashboard', icon: '📊', label: 'Dashboard' },
+  { key: 'clients',   icon: '🧑‍💼', label: 'Clients'   },
+  { key: 'kyc',       icon: '🪪',  label: 'eKYC'      },
+  { key: 'settings',  icon: '⚙️',  label: 'Paramètres' },
+]
+
 function Sidebar({ activePage, onNavigate, onLogout }) {
+  const user = getUser()
+  const fullName = user ? `${user.firstName} ${user.lastName}` : 'Super Admin'
+  const initials = user
+    ? `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase()
+    : 'S'
+  const role = user?.role ?? 'super_admin'
+
+  const NAV_ITEMS = role === 'admin' ? ADMIN_NAV : SUPER_ADMIN_NAV   // 👈
+
   const handleLogout = async () => {
     await logout()
     onLogout()
@@ -34,17 +50,16 @@ function Sidebar({ activePage, onNavigate, onLogout }) {
       </nav>
 
       <div className="sidebar-footer">
-        <div className="avatar">S</div>
+        <div className="avatar">{initials}</div>
         <div className="user-info">
-          <span className="user-name">Super Admin</span>
-          <span className="user-role">super-admin</span>
+          <span className="user-name">{fullName}</span>
+          <span className="user-role">{role}</span>
         </div>
-
-        {/* 👇 Logout button */}
-        <button className="btn-logout" onClick={handleLogout}>
-          🚪 Logout
-        </button>
       </div>
+
+      <button className="btn-logout" onClick={handleLogout}>
+        🚪 Logout
+      </button>
     </aside>
   )
 }

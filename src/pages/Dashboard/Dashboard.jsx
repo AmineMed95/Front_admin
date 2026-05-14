@@ -63,7 +63,7 @@ function ChartTooltip({ active, payload, label }) {
 }
 
 /* ── Dashboard ──────────────────────────────────── */
-function Dashboard({ onNavigate }) {
+function Dashboard({ onNavigate, onLogout }) {
   const [stats, setStats]   = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -74,7 +74,7 @@ function Dashboard({ onNavigate }) {
   if (loading) {
     return (
       <div className="dash-page">
-        <Sidebar activePage="dashboard" onNavigate={onNavigate} />
+        <Sidebar activePage="dashboard" onNavigate={onNavigate} onLogout={onLogout}/>
         <main className="dash-main">
           <div className="dash-loading">
             <div className="dash-spinner" />
@@ -90,7 +90,7 @@ function Dashboard({ onNavigate }) {
 
   return (
     <div className="dash-page">
-      <Sidebar activePage="dashboard" onNavigate={onNavigate} />
+      <Sidebar activePage="dashboard" onNavigate={onNavigate}  onLogout={onLogout} />
 
       <main className="dash-main">
         {/* Page header */}

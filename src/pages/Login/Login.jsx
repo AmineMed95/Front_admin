@@ -2,9 +2,10 @@ import { useState } from 'react'
 import './Login.css'
 import { login } from '../../services/auth.service.js'
 
-function Login({ onLogin }) {
+function Login({ onLogin, onForgotPassword }) {
   const [form, setForm] = useState({ email: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
+  const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -19,7 +20,7 @@ function Login({ onLogin }) {
     setError('')
 
     try {
-      await login({ email: form.email, password: form.password })
+      await login({ email: form.email, password: form.password, rememberMe })
       onLogin()
     } catch (err) {
       setError(err.message || 'Email ou mot de passe incorrect.')
@@ -78,10 +79,23 @@ function Login({ onLogin }) {
 
           <div className="form-options">
             <label className="checkbox-label">
-              <input type="checkbox" />
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+              />
               <span>Remember me</span>
             </label>
-            <a href="#" className="forgot-link">Forgot password?</a>
+              <a
+                href="#"
+                className="forgot-link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onForgotPassword();
+                }}
+              >
+                Mot de passe oublié ?
+              </a>
           </div>
 
           {error && <p className="login-error">{error}</p>}

@@ -1,9 +1,16 @@
 const API_URL = 'http://localhost:3000'
 
-const getHeaders = () => ({
-  'Content-Type': 'application/json',
-  Authorization: `Bearer ${localStorage.getItem('token')}`,
-})
+const getHeaders = () => {
+  const token =
+    localStorage.getItem('token') || sessionStorage.getItem('token')
+
+  console.log('[auth] token:', token ? `${token.slice(0, 20)}…` : 'MISSING ⚠️')
+
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  }
+}
 
 const mapAdmin = (admin) => ({
   id: admin.id,
@@ -11,7 +18,7 @@ const mapAdmin = (admin) => ({
   lastName: admin.last_name,
   email: admin.email,
   organization: admin.organization_name,
-  phone: admin.phone,      
+  phone: admin.phone,
   createdAt: admin.created_at,
   status: admin.status?.code === 'actif' ? 'active' : 'pending',
   activationToken: admin.activation_token,
@@ -21,7 +28,18 @@ export async function getAdmins() {
   const res = await fetch(`${API_URL}/users/get-list-admin`, {
     headers: getHeaders(),
   })
-  if (!res.ok) throw new Error('Failed to fetch admins')
+
+  if (!res.ok) {
+    let errorMessage = 'Failed to fetch admins'
+    try {
+      const errorBody = await res.json()
+      errorMessage = errorBody.message || errorMessage
+    } catch {
+      console.error('[getAdmins] failed:', res.status, '(no JSON body)')
+    }
+    throw new Error(errorMessage)
+  }
+
   const data = await res.json()
   return data.map(mapAdmin)
 }
@@ -35,7 +53,7 @@ export async function createAdmin({ firstName, lastName, email, organization, ph
       last_name: lastName,
       email,
       organization_name: organization,
-      phone : phone,
+      phone,
     }),
   })
   if (!res.ok) {
@@ -62,7 +80,7 @@ export async function updateAdmin(id, { firstName, lastName, email, organization
     throw new Error(err.message || 'Failed to update admin')
   }
   const data = await res.json()
-  return mapAdmin(data.data)  
+  return mapAdmin(data.data)
 }
 
 export async function deleteAdmin(id) {
