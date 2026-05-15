@@ -417,4 +417,10 @@ body {
   .client-search {
     width: 100%;
   }
+  .code-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  align-items: flex-start;
+}
 }

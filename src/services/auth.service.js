@@ -57,12 +57,12 @@ export function isAuthenticated() {
   return !!getToken()
 }
 export async function forgotPassword(email) {
-  const res = await fetch(`${API_URL}/forgot-password`, {
+  const res = await fetch(`${API_URL}/auth/forgot-password`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email }),
   })
-
+  
   const data = await res.json()
  console.log('data'  ,res.status)
 
@@ -85,7 +85,7 @@ export async function forgotPassword(email) {
 
 // ─── Reset Password ───────────────────────────────────────────────────────────
 export async function resetPassword(token, password, confirm_password) {
-  const res = await fetch(`${API_URL}/reset-password`, {
+  const res = await fetch(`${API_URL}/auth/reset-password`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ token, password, confirm_password }),
@@ -112,5 +112,11 @@ export async function resetPassword(token, password, confirm_password) {
     throw new Error(msg || 'Impossible de réinitialiser le mot de passe.')
   }
 
+  return data
+}
+export async function activateAccount(token) {
+  const res = await fetch(`${API_URL}/auth/activate?token=${token}`)
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.message || 'Lien invalide ou expiré.')
   return data
 }

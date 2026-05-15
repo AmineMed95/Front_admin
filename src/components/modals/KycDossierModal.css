@@ -132,32 +132,90 @@
   cursor: zoom-in;
 }
 
-/* ================= ACTIONS ================= */
+/* ───────────────── ACTIONS ───────────────── */
+
 .actions {
   display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 18px;
+  margin-top: 32px;
+  flex-wrap: wrap;
 }
 
-.actions button {
-  flex: 1;
-  padding: 1rem;
+/* Buttons */
+.approve-btn,
+.reject-btn {
   border: none;
-  border-radius: 12px;
-  font-weight: bold;
+
+  padding: 16px 28px;   /* bigger */
+  min-width: 160px;     /* wider buttons */
+
+  border-radius: 14px;
+
+  font-size: 16px;      /* larger text */
+  font-weight: 700;
+
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.actions button:first-child {
-  background: #22c55e;
+/* Approve */
+.approve-btn {
+  background: #10b981;
   color: white;
 }
 
-.actions button:last-child {
+.approve-btn:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* Reject */
+.reject-btn {
   background: #ef4444;
   color: white;
 }
 
+.reject-btn:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* Disabled */
+.approve-btn:disabled,
+.reject-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Approved Badge */
+.kyc-approved-badge {
+  background: #dcfce7;
+  color: #166534;
+
+  border: 1px solid #bbf7d0;
+
+  padding: 16px 28px;
+  border-radius: 14px;
+
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Rejected Badge */
+.kyc-rejected-badge {
+  background: #fee2e2;
+  color: #991b1b;
+
+  border: 1px solid #fecaca;
+
+  padding: 16px 28px;
+  border-radius: 14px;
+
+  font-size: 16px;
+  font-weight: 700;
+}
 /* ================= ZOOM ================= */
 .zoom-overlay {
   position: fixed;

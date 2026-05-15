@@ -17,7 +17,27 @@ const mapClient = (client) => ({
   isCodeUsed: client.is_code_used,
   createdBy: client.created_by,
   createdAt: client.created_at,
-  has_kyc: client.has_kyc,          
+  has_kyc: client.has_kyc,
+  kyc: client.kyc
+    ? {
+        id: client.kyc.id,
+        status: client.kyc.status,
+        facialMatchingScore: client.kyc.facialMatchingScore,
+        cinImageUrl: client.kyc.cinImageUrl,
+        selfieImageUrl: client.kyc.selfieImageUrl,
+        createdAt: client.kyc.createdAt,
+        cinData: client.kyc.cinData
+          ? {
+              cin: client.kyc.cinData.cin,
+              firstName: client.kyc.cinData.firstName,
+              lastName: client.kyc.cinData.lastName,
+              birthDate: client.kyc.cinData.birthDate,
+              lieu: client.kyc.cinData.lieu,
+              address: client.kyc.cinData.address,
+            }
+          : null,
+      }
+    : null,
 })
 
 export async function getClients() {
@@ -28,7 +48,6 @@ export async function getClients() {
   const data = await res.json()
   return data.map(mapClient)
 }
-
 export async function createClient(form) {
   const res = await fetch(`${API_URL}/clients/create`, {
     method: 'POST',

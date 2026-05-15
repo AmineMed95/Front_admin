@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import './KycRecordList.css'
 
 import { getKycRecords } from '../../services/kyc.service'
+import { createClient } from '../../services/client.service'
 
 import Sidebar from '../../components/ui/Sidebar/Sidebar'
 import KycDossierModal from '../../components/modals/KycDossierModal'
+import CreateClientModal from '../../components/modals/CreateClientModal'
 
 const BASE_URL = 'http://localhost:3000'
 
@@ -13,8 +15,9 @@ function KycRecordList({ onNavigate, onLogout }) {
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState('')
   const [search, setSearch]     = useState('')
-  const [lightbox, setLightbox] = useState(null) 
-  const [dossier, setDossier]   = useState(null) 
+  const [lightbox, setLightbox] = useState(null)
+  const [dossier, setDossier]   = useState(null)
+  const [modal, setModal]       = useState(null)   // ← create client modal
   const [toast, setToast]       = useState(null)
 
   useEffect(() => {
@@ -38,17 +41,30 @@ function KycRecordList({ onNavigate, onLogout }) {
     }
   }
 
+  // ── Create client ──────────────────────────────────
+  const handleCreate = async (form) => {
+    try {
+      await createClient(form)
+      await fetchRecords()
+      setModal(null)
+      showToast('Compte client créé et email envoyé.', 'success')
+    } catch (err) {
+      setModal(null)
+      showToast(err.message || 'Erreur lors de la création du client.', 'error')
+    }
+  }
+
   /* ── Filter ──────────────────────────────────────── */
   const filtered = records.filter((r) => {
     const q = search.toLowerCase()
     const client = r.client || {}
     return (
-      (client.email  || '').toLowerCase().includes(q) ||
-      (client.phone  || '').toLowerCase().includes(q) ||
-      (r.cinData?.cin     || '').toLowerCase().includes(q) ||
-      (r.cinData?.firstName || '').toLowerCase().includes(q) ||
-      (r.cinData?.lastName  || '').toLowerCase().includes(q) ||
-      (r.status      || '').toLowerCase().includes(q)
+      (client.email        || '').toLowerCase().includes(q) ||
+      (client.phone        || '').toLowerCase().includes(q) ||
+      (r.cinData?.cin      || '').toLowerCase().includes(q) ||
+      (r.cinData?.firstName|| '').toLowerCase().includes(q) ||
+      (r.cinData?.lastName || '').toLowerCase().includes(q) ||
+      (r.status            || '').toLowerCase().includes(q)
     )
   })
 
@@ -68,7 +84,7 @@ function KycRecordList({ onNavigate, onLogout }) {
     return 'score-low'
   }
 
-  const imgSrc = (path) =>path
+  const imgSrc = (path) => path
 
   const formatDate = (iso) =>
     iso ? new Date(iso).toLocaleDateString('fr-FR') : '-'
@@ -102,6 +118,14 @@ function KycRecordList({ onNavigate, onLogout }) {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
+
+              {/* ✅ Create client button */}
+              <button
+                className="btn-primary"
+                onClick={() => setModal({ mode: 'create' })}
+              >
+                + Nouveau client
+              </button>
             </div>
           </div>
 
@@ -116,10 +140,10 @@ function KycRecordList({ onNavigate, onLogout }) {
                 <thead>
                   <tr>
                     <th>Client</th>
+                    <th>Téléphone</th>       
+                    <th>Code d'accès</th>    
                     <th>Statut KYC</th>
                     <th>Score</th>
-                    <th>Données CIN</th>
-                    <th>CIN</th>
                     <th>Selfie</th>
                     <th>Créé le</th>
                     <th>Actions</th>
@@ -129,7 +153,7 @@ function KycRecordList({ onNavigate, onLogout }) {
                 <tbody>
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="client-empty">
+                      <td colSpan={10} className="client-empty">
                         Aucun dossier KYC trouvé.
                       </td>
                     </tr>
@@ -142,7 +166,7 @@ function KycRecordList({ onNavigate, onLogout }) {
                       return (
                         <tr key={r.id}>
 
-                          {/* Client email + avatar */}
+                          {/* Client name + email */}
                           <td>
                             <div className="client-name">
                               <div className="client-avatar">
@@ -160,8 +184,20 @@ function KycRecordList({ onNavigate, onLogout }) {
                             </div>
                           </td>
 
+                          {/* ✅ Phone */}
+                          <td>{client.phone}</td>
 
-                          {/* Status */}
+                          {/* ✅ Access code + code status */}
+                          <td>
+                            <div className="code-cell">
+                            
+                              <span className={`status-badge ${client.isCodeUsed ? 'used' : 'unused'}`}>
+                                {client.isCodeUsed ? 'Utilisé' : 'Non utilisé'}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* KYC Status */}
                           <td>
                             <span className={`status-badge ${cls}`}>
                               {label}
@@ -180,25 +216,16 @@ function KycRecordList({ onNavigate, onLogout }) {
                           {/* CIN data */}
                           <td>
                             <div className="cin-details">
-                              <span className="cin-row">
-                                <b>CIN :</b> {cin.cin || '-'}
-                              </span>
-                              <span className="cin-row">
-                                <b>Nom :</b> {cin.firstName} {cin.lastName}
-                              </span>
+                              <span className="cin-row"><b>CIN :</b> {cin.cin || '-'}</span>
+                              <span className="cin-row"><b>Nom :</b> {cin.firstName} {cin.lastName}</span>
                               <span className="cin-row">
                                 <b>Naissance :</b>{' '}
                                 {cin.birthDate
                                   ? new Date(cin.birthDate).toLocaleDateString('fr-FR')
                                   : '-'}
                               </span>
-                              <span className="cin-row">
-                                <b>Adresse :</b>{' '}
-                               
-                              </span>
-                              <span className="cin-row cin-address">
-                                {cin.address || '-'}
-                              </span>
+                              <span className="cin-row"><b>Adresse :</b></span>
+                              <span className="cin-row cin-address">{cin.address || '-'}</span>
                             </div>
                           </td>
 
@@ -239,14 +266,16 @@ function KycRecordList({ onNavigate, onLogout }) {
 
                           {/* Actions */}
                           <td>
-                              {r.status === "en_attente" && (
-                            <button
-                              className="btn-consulter"
-                              onClick={() => setDossier({ clientId: r.client?.id })}
-                            >
-                              🔍 Consulter dossier
-                            </button>)}
+                            {r.status === 'en_attente' && (
+                              <button
+                                className="btn-consulter"
+                                onClick={() => setDossier({ clientId: r.client?.id })}
+                              >
+                                🔍 Consulter dossier
+                              </button>
+                            )}
                           </td>
+
                         </tr>
                       )
                     })
@@ -258,13 +287,21 @@ function KycRecordList({ onNavigate, onLogout }) {
         </div>
       </main>
 
+      {/* ✅ Create Client Modal */}
+      {modal?.mode === 'create' && (
+        <CreateClientModal
+          onClose={() => setModal(null)}
+          onSubmit={handleCreate}
+        />
+      )}
+
       {/* Dossier KYC modal */}
       {dossier && (
         <KycDossierModal
           clientId={dossier.clientId}
           onClose={() => setDossier(null)}
           onUpdated={() => {
-            setDossier(null);
+            setDossier(null)
             fetchRecords()
             showToast('Statut mis à jour avec succès.', 'success')
           }}

@@ -3,7 +3,7 @@ import Login from './pages/Login/Login'
 import AdminList from './pages/AdminList/AdminList'
 import AdminStats from './pages/AdminStats/AdminStats'
 import Dashboard from './pages/Dashboard/Dashboard'
-import SetPassword from './pages/SetPassword/SetPassword'
+import ActivationCompte from './pages/ActivationCompte/ActivationCompte'
 import ClientList from './pages/ClientList/ClientList'
 import KycRecordList from './pages/KycRecordList/KycRecordList'
 import ForgotPassword from './pages/Login/Forgotpassword'
@@ -17,20 +17,17 @@ import {
 
 // ── URL token helpers ────────────────────────────────────────────────────────
 
-/** Activation token:  ?token=xxx  (account creation) */
-function getActivationToken() {
+function getTokenFromUrl() {
   return new URLSearchParams(window.location.search).get('token')
 }
 
-/** Reset token:  ?reset_token=xxx  (forgot-password email link) */
-function getResetToken() {
-  return new URLSearchParams(window.location.search).get('reset_token')
+function isResetPasswordPath() {
+  return window.location.pathname === '/reset-password'
 }
 
 function clearTokenFromUrl() {
   const url = new URL(window.location)
   url.searchParams.delete('token')
-  url.searchParams.delete('reset_token')
   window.history.replaceState({}, '', url)
 }
 
@@ -41,11 +38,10 @@ function App() {
   const role = user?.role
 
   const [page, setPage] = useState(() => {
-    // Priority 1 — password-reset link from email  (?reset_token=xxx)
-    if (getResetToken()) return 'reset-password'
+    const token = getTokenFromUrl()
+    if (token && isResetPasswordPath()) return 'reset-password'
 
-    // Priority 2 — account activation link  (?token=xxx)
-    if (getActivationToken()) return 'set-password'
+    if (token) return 'activation-compte'
 
     // Priority 3 — already logged in
     if (isAuthenticated()) return 'dashboard'
@@ -55,8 +51,7 @@ function App() {
 
   const [selectedAdmin, setSelectedAdmin] = useState(null)
 
-  const activationToken = getActivationToken()
-  const resetToken      = getResetToken()
+  const token = getTokenFromUrl()
 
   const handleLogout = () => {
     logout()
@@ -70,12 +65,12 @@ function App() {
 
   // =========================
   // RESET PASSWORD PAGE
-  // Triggered by ?reset_token= in the email link
+  // /?reset-password?token=...
   // =========================
   if (page === 'reset-password') {
     return (
       <ResetPassword
-        tokenProp={resetToken || undefined}
+        tokenProp={token || undefined}
         onSuccess={() => {
           clearTokenFromUrl()
           setPage('login')
@@ -86,7 +81,6 @@ function App() {
 
   // =========================
   // FORGOT PASSWORD PAGE
-  // Triggered by clicking "Mot de passe oublié" on Login
   // =========================
   if (page === 'forgot-password') {
     return (
@@ -97,12 +91,13 @@ function App() {
   }
 
   // =========================
-  // SET PASSWORD PAGE
+  // Activation Compte PAGE
+  // /?token=...
   // =========================
-  if (page === 'set-password' && activationToken) {
+  if (page === 'activation-compte' && token) {
     return (
-      <SetPassword
-        token={activationToken}
+      <ActivationCompte
+        token={token}
         onActivated={() => {
           clearTokenFromUrl()
           setPage('login')
@@ -119,7 +114,6 @@ function App() {
       <Login
         onLogin={() => {
           const loggedUser = getUser()
-
           if (loggedUser?.role === 'super_admin') {
             setPage('dashboard')
           } else if (loggedUser?.role === 'admin') {
@@ -153,7 +147,6 @@ function App() {
     if (role !== 'super_admin') {
       return <Dashboard onNavigate={setPage} onLogout={handleLogout} />
     }
-
     return (
       <AdminList
         onNavigate={setPage}
@@ -171,7 +164,6 @@ function App() {
     if (role !== 'admin') {
       return <Dashboard onNavigate={setPage} onLogout={handleLogout} />
     }
-
     return (
       <ClientList
         onNavigate={setPage}
@@ -200,7 +192,6 @@ function App() {
     if (role !== 'super_admin') {
       return <Dashboard onNavigate={setPage} onLogout={handleLogout} />
     }
-
     return (
       <AdminStats
         admin={selectedAdmin}

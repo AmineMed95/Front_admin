@@ -1,24 +1,17 @@
-import { useEffect, useState } from 'react'
-import { getAdminByToken, activateAccount } from '../../services/adminService'
-import './SetPassword.css'
+import { activateAccount } from '../../services/auth.service'
+import { useEffect, useState, useRef } from 'react'
+import './ActivationCompte.css'
 
-/**
- * Account activation page.
- * Reached via the link sent in the welcome email (?token=...).
- * Automatically validates the token and activates the account.
- * The agent's password was already generated and delivered by email.
- */
-function SetPassword({ token, onActivated }) {
-  const [status, setStatus] = useState('loading') // 'loading' | 'success' | 'error'
-  const [admin, setAdmin]   = useState(null)
+function ActivationCompte({ token, onActivated }) {
+  const [status, setStatus] = useState('loading')
   const [errorMsg, setErrorMsg] = useState('')
+  const called = useRef(false)
 
   useEffect(() => {
-    getAdminByToken(token)
-      .then((found) => {
-        setAdmin(found)
-        return activateAccount(token)
-      })
+    if (called.current) return
+    called.current = true
+
+    activateAccount(token)
       .then(() => setStatus('success'))
       .catch((err) => {
         setErrorMsg(err.message)
@@ -31,6 +24,7 @@ function SetPassword({ token, onActivated }) {
     return (
       <div className="sp-wrapper">
         <div className="sp-card sp-card--centered">
+          <div className="sp-logo">A</div>
           <div className="sp-spinner" />
           <p className="sp-loading-text">Activation du compte en cours...</p>
         </div>
@@ -45,10 +39,9 @@ function SetPassword({ token, onActivated }) {
         <div className="sp-card sp-card--centered">
           <div className="sp-icon sp-icon--error">✕</div>
           <h1>Lien invalide</h1>
-          <p className="sp-sub">{errorMsg}</p>
-          <p className="sp-hint">
+          <div className="sp-error">
             Contactez votre super administrateur pour obtenir un nouveau lien d'activation.
-          </p>
+          </div>
         </div>
       </div>
     )
@@ -58,16 +51,10 @@ function SetPassword({ token, onActivated }) {
   return (
     <div className="sp-wrapper">
       <div className="sp-card sp-card--centered">
+        <div className="sp-logo">A</div>
         <div className="sp-icon sp-icon--success">✓</div>
-
         <h1>Compte activé !</h1>
-
-        {admin && (
-          <p className="sp-greeting">
-            Bienvenue, <strong>{admin.firstName} {admin.lastName}</strong>.
-          </p>
-        )}
-
+        <p className="sp-subtitle">Votre compte est prêt à être utilisé</p>
         <div className="sp-info-box">
           <p>Votre compte est maintenant actif.</p>
           <p>
@@ -75,11 +62,9 @@ function SetPassword({ token, onActivated }) {
             <strong>mot de passe</strong> reçu dans l'email d'activation.
           </p>
         </div>
-
         <div className="sp-security-tip">
           🔒 Pour votre sécurité, changez votre mot de passe dès votre première connexion.
         </div>
-
         <button className="sp-btn-primary" onClick={onActivated}>
           Se connecter
         </button>
@@ -88,4 +73,4 @@ function SetPassword({ token, onActivated }) {
   )
 }
 
-export default SetPassword
+export default ActivationCompte

@@ -140,22 +140,37 @@ function KycDossierModal({ clientId, onClose, onUpdated }) {
                   </div>
                 </div>
 
-                {/* ================= ACTIONS ================= */}
                 <div className="actions">
-                  <button
-                    disabled={updating}
-                    onClick={() => handleStatusChange('valide')}
-                  >
-                    Approve
-                  </button>
 
-                  <button
-                    disabled={updating}
-                    onClick={() => handleStatusChange('non_valide')}
-                  >
-                    Reject
-                  </button>
-                </div>
+  {record.status === 'valide' ? (
+    <div className="kyc-approved-badge">
+      ✅ Approved
+    </div>
+  ) : record.status === 'non_valide' ? (
+    <div className="kyc-rejected-badge">
+      ❌ Rejected
+    </div>
+  ) : (
+    <>
+      <button
+        className="approve-btn"
+        disabled={updating}
+        onClick={() => handleStatusChange('valide')}
+      >
+        Approve
+      </button>
+
+      <button
+        className="reject-btn"
+        disabled={updating}
+        onClick={() => handleStatusChange('non_valide')}
+      >
+        Reject
+      </button>
+    </>
+  )}
+
+</div>
               </>
             )}
           </div>

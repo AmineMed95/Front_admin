@@ -9,8 +9,7 @@ const SUPER_ADMIN_NAV = [
 
 const ADMIN_NAV = [
   { key: 'dashboard', icon: '📊', label: 'Dashboard' },
-  { key: 'clients',   icon: '🧑‍💼', label: 'Clients'   },
-  { key: 'kyc',       icon: '🪪',  label: 'eKYC'      },
+  { key: 'clients',   icon: '🪪', label: 'eKYC'   },
   { key: 'settings',  icon: '⚙️',  label: 'Paramètres' },
 ]
 

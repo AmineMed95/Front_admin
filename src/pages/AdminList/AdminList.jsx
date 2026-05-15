@@ -23,8 +23,8 @@ function StatusBadge({ status }) {
 function AdminList({ onNavigate, onViewStats, onLogout }) {
   const [admins, setAdmins] = useState([])
   const [loading, setLoading] = useState(true)
-  const [modal, setModal] = useState(null)         // null | { mode: 'create' } | { mode: 'edit', admin }
-  const [emailModal, setEmailModal] = useState(null) // null | { admin, activationLink }
+  const [modal, setModal] = useState(null)        
+  const [emailModal, setEmailModal] = useState(null) 
   const [confirmId, setConfirmId] = useState(null)
   const [busyId, setBusyId] = useState(null)
   const [toast, setToast] = useState(null)
@@ -50,6 +50,7 @@ function AdminList({ onNavigate, onViewStats, onLogout }) {
       setModal(null)
       showToast('Compte admin créé et email envoyé.', 'success')
     } catch (err) {
+       setModal(null);
       showToast(err.message || 'Erreur lors de la création du compte.', 'error')
     }
   }
@@ -62,6 +63,7 @@ function AdminList({ onNavigate, onViewStats, onLogout }) {
       setModal(null)
       showToast(`Compte de ${updated.firstName} ${updated.lastName} mis à jour.`, 'success')
     } catch (err) {
+      setModal(null);
       showToast(err.message || 'Erreur lors de la mise à jour du compte.', 'error')
     }
   }
