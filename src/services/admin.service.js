@@ -94,3 +94,34 @@ export async function deleteAdmin(id) {
   }
   return res.json()
 }
+  // ── Change password ──────────────────────────────────────────────────────────
+  // POST /users/change-password
+  // Body: { current_password, new_password }
+  // Returns: { success: true } | { success: false, message: string }
+  export async function changePassword({ current_password, new_password }) {
+    try {
+      const res = await fetch(`${API_URL}/users/change-password`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ current_password, new_password }),
+      })
+  
+      const data = await res.json().catch(() => ({}))
+  
+      if (res.ok) {
+        return { success: true }
+      }
+      return {
+        success: false,
+        message:
+          data?.message ||
+          (res.status === 401
+            ? 'Mot de passe actuel incorrect.'
+            : 'Une erreur est survenue. Veuillez réessayer.'),
+      }
+      } catch (err) {      return {
+          success: false,
+          message: err.message,
+        }
+      }
+  }

@@ -8,6 +8,7 @@ import ClientList from './pages/ClientList/ClientList'
 import KycRecordList from './pages/KycRecordList/KycRecordList'
 import ForgotPassword from './pages/Login/Forgotpassword'
 import ResetPassword from './pages/Login/ResetPassword'
+import Settings from './pages/Settings/Settings'
 
 import {
   isAuthenticated,
@@ -30,6 +31,10 @@ function clearTokenFromUrl() {
   url.searchParams.delete('token')
   window.history.replaceState({}, '', url)
 }
+// Resets BOTH the /reset-password pathname AND the ?token= query param
+function clearResetPasswordUrl() {
+  window.history.replaceState({}, '', '/')
+}
 
 // ── App ──────────────────────────────────────────────────────────────────────
 
@@ -38,13 +43,14 @@ function App() {
   const role = user?.role
 
   const [page, setPage] = useState(() => {
+    // Priority 1 — already logged in → always go to dashboard
+    if (isAuthenticated()) return 'dashboard'
     const token = getTokenFromUrl()
+    // Priority 2 — reset-password link (must NOT be authenticated)
     if (token && isResetPasswordPath()) return 'reset-password'
 
+    // Priority 3 — activation link
     if (token) return 'activation-compte'
-
-    // Priority 3 — already logged in
-    if (isAuthenticated()) return 'dashboard'
 
     return 'login'
   })
@@ -65,14 +71,19 @@ function App() {
 
   // =========================
   // RESET PASSWORD PAGE
-  // /?reset-password?token=...
+  // /reset-password?token=...
+  // Guard: block if already authenticated
   // =========================
   if (page === 'reset-password') {
+    if (isAuthenticated()) {
+      clearResetPasswordUrl()                          // ← clean the URL
+      return <Dashboard onNavigate={setPage} onLogout={handleLogout} />
+    }
     return (
       <ResetPassword
         tokenProp={token || undefined}
         onSuccess={() => {
-          clearTokenFromUrl()
+          clearResetPasswordUrl()                      // ← clears /reset-password + ?token
           setPage('login')
         }}
       />
@@ -81,8 +92,12 @@ function App() {
 
   // =========================
   // FORGOT PASSWORD PAGE
+  // Guard: block if already authenticated
   // =========================
   if (page === 'forgot-password') {
+    if (isAuthenticated()) {
+      return <Dashboard onNavigate={setPage} onLogout={handleLogout} />
+    }
     return (
       <ForgotPassword
         onBack={() => setPage('login')}
@@ -91,10 +106,14 @@ function App() {
   }
 
   // =========================
-  // Activation Compte PAGE
+  // ACTIVATION COMPTE PAGE
   // /?token=...
+  // Guard: block if already authenticated
   // =========================
   if (page === 'activation-compte' && token) {
+    if (isAuthenticated()) {
+      return <Dashboard onNavigate={setPage} onLogout={handleLogout} />
+    }
     return (
       <ActivationCompte
         token={token}
@@ -108,8 +127,12 @@ function App() {
 
   // =========================
   // LOGIN PAGE
+  // Guard: block if already authenticated
   // =========================
   if (page === 'login') {
+    if (isAuthenticated()) {
+      return <Dashboard onNavigate={setPage} onLogout={handleLogout} />
+    }
     return (
       <Login
         onLogin={() => {
@@ -184,6 +207,19 @@ function App() {
     )
   }
 
+
+  // =========================
+  // SETTINGS PAGE
+  // SUPER ADMIN & ADMIN
+  // =========================
+  if (page === 'settings') {
+    return (
+      <Settings
+        onNavigate={setPage}
+        onLogout={handleLogout}
+      />
+    )
+  }
   // =========================
   // ADMIN STATS
   // ONLY SUPER ADMIN
