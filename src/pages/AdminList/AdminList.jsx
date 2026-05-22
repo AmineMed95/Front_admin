@@ -1,3 +1,4 @@
+// src/pages/AdminList/AdminList.jsx
 import { useEffect, useState } from 'react'
 import { getAdmins, createAdmin, updateAdmin, deleteAdmin } from '../../services/admin.service'
 import CreateAdminModal from '../../components/modals/CreateAdminModal'
@@ -6,9 +7,7 @@ import './AdminList.css'
 
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
+    day: '2-digit', month: 'short', year: 'numeric',
   })
 }
 
@@ -21,18 +20,15 @@ function StatusBadge({ status }) {
 }
 
 function AdminList({ onNavigate, onViewStats, onLogout }) {
-  const [admins, setAdmins] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [modal, setModal] = useState(null)        
-  const [emailModal, setEmailModal] = useState(null) 
+  const [admins,    setAdmins]    = useState([])
+  const [loading,   setLoading]   = useState(true)
+  const [modal,     setModal]     = useState(null)
   const [confirmId, setConfirmId] = useState(null)
-  const [busyId, setBusyId] = useState(null)
-  const [toast, setToast] = useState(null)
+  const [busyId,    setBusyId]    = useState(null)
+  const [toast,     setToast]     = useState(null)
 
   useEffect(() => {
-    getAdmins()
-      .then(setAdmins)
-      .finally(() => setLoading(false))
+    getAdmins().then(setAdmins).finally(() => setLoading(false))
   }, [])
 
   const showToast = (message, type = 'success') => {
@@ -40,18 +36,16 @@ function AdminList({ onNavigate, onViewStats, onLogout }) {
     setTimeout(() => setToast(null), 3500)
   }
 
-  /* ── Create ── */
   const handleCreate = async (formData) => {
     try {
       await createAdmin(formData)
-      // Refresh the list to get the new admin from backend
-      const updatedList = await getAdmins()
-      setAdmins(updatedList)
+      const updated = await getAdmins()
+      setAdmins(updated)
       setModal(null)
-      showToast('Compte admin créé et email envoyé.', 'success')
+      showToast('Compte admin créé et email envoyé.')
     } catch (err) {
-       setModal(null);
-      showToast(err.message || 'Erreur lors de la création du compte.', 'error')
+      setModal(null)
+      showToast(err.message || 'Erreur lors de la création.', 'error')
     }
   }
 
@@ -59,24 +53,23 @@ function AdminList({ onNavigate, onViewStats, onLogout }) {
     const { id } = modal.admin
     try {
       const updated = await updateAdmin(id, formData)
-      setAdmins((prev) => prev.map((a) => (a.id === id ? { ...a, ...updated } : a))) // 👈 spread old + new
+      setAdmins((prev) => prev.map((a) => (a.id === id ? { ...a, ...updated } : a)))
       setModal(null)
-      showToast(`Compte de ${updated.firstName} ${updated.lastName} mis à jour.`, 'success')
+      showToast(`Compte de ${updated.firstName} ${updated.lastName} mis à jour.`)
     } catch (err) {
-      setModal(null);
-      showToast(err.message || 'Erreur lors de la mise à jour du compte.', 'error')
+      setModal(null)
+      showToast(err.message || 'Erreur lors de la mise à jour.', 'error')
     }
   }
 
-  /* ── Delete ── */
- const handleDelete = async (id) => {
+  const handleDelete = async (id) => {
     setBusyId(id)
     try {
       await deleteAdmin(id)
       setAdmins((prev) => prev.filter((a) => a.id !== id))
-      showToast('Compte admin supprimé.', 'success')
+      showToast('Compte admin supprimé.')
     } catch (err) {
-      showToast(err.message || 'Erreur lors de la suppression.', 'error')  // 👈 was hardcoded string
+      showToast(err.message || 'Erreur lors de la suppression.', 'error')
     } finally {
       setBusyId(null)
       setConfirmId(null)
@@ -85,9 +78,8 @@ function AdminList({ onNavigate, onViewStats, onLogout }) {
 
   return (
     <div className="admin-page">
-      <Sidebar activePage="admins" onNavigate={onNavigate}  onLogout={onLogout}/>
+      <Sidebar activePage="admins" onNavigate={onNavigate} onLogout={onLogout} />
 
-      {/* Main */}
       <main className="main-content">
         <div className="page-header">
           <div>
@@ -123,7 +115,7 @@ function AdminList({ onNavigate, onViewStats, onLogout }) {
                   <th>Nom &amp; Prénom</th>
                   <th>Email</th>
                   <th>Organisation</th>
-                  <th>Phone</th>
+                  <th>Téléphone</th>
                   <th>Statut</th>
                   <th>Date de création</th>
                   <th>Actions</th>
@@ -140,58 +132,50 @@ function AdminList({ onNavigate, onViewStats, onLogout }) {
                         <span>{admin.firstName} {admin.lastName}</span>
                       </div>
                     </td>
+
                     <td className="cell-email">{admin.email}</td>
-                     <td>
-                      <span className="org-badge">{admin.organization}</span>
+
+                    {/* ← was admin.organization (wrong key), now admin.organisation */}
+                    <td>
+                      <span className="org-badge">
+                        {admin.organisation}
+                      </span>
                     </td>
-                       <td>
+
+                    <td>
                       <span className="org-badge">{admin.phone}</span>
                     </td>
-                   
-                    <td>
-                      <StatusBadge status={admin.status} />
-                    </td>
+
+                    <td><StatusBadge status={admin.status} /></td>
                     <td className="cell-date">{formatDate(admin.createdAt)}</td>
+
                     <td>
                       {confirmId === admin.id ? (
                         <div className="confirm-delete">
                           <span className="confirm-text">Supprimer ?</span>
-                          <button
-                            className="btn-action btn-confirm"
+                          <button className="btn-action btn-confirm"
                             onClick={() => handleDelete(admin.id)}
-                            disabled={busyId === admin.id}
-                          >
+                            disabled={busyId === admin.id}>
                             {busyId === admin.id ? '...' : 'Oui'}
                           </button>
-                          <button
-                            className="btn-action btn-cancel-inline"
+                          <button className="btn-action btn-cancel-inline"
                             onClick={() => setConfirmId(null)}
-                            disabled={busyId === admin.id}
-                          >
+                            disabled={busyId === admin.id}>
                             Non
                           </button>
                         </div>
                       ) : (
                         <div className="action-buttons">
-                          <button
-                            className="btn-action btn-stats"
-                            onClick={() => onViewStats(admin)}
-                            title="Statistiques"
-                          >
+                          <button className="btn-action btn-stats"
+                            onClick={() => onViewStats(admin)} title="Statistiques">
                             📊 Stats
                           </button>
-                          <button
-                            className="btn-action btn-edit"
-                            onClick={() => setModal({ mode: 'edit', admin })}
-                            title="Modifier"
-                          >
+                          <button className="btn-action btn-edit"
+                            onClick={() => setModal({ mode: 'edit', admin })} title="Modifier">
                             ✏️ Modifier
                           </button>
-                          <button
-                            className="btn-action btn-delete"
-                            onClick={() => setConfirmId(admin.id)}
-                            title="Supprimer"
-                          >
+                          <button className="btn-action btn-delete"
+                            onClick={() => setConfirmId(admin.id)} title="Supprimer">
                             🗑️ Supprimer
                           </button>
                         </div>
@@ -205,7 +189,6 @@ function AdminList({ onNavigate, onViewStats, onLogout }) {
         </div>
       </main>
 
-      {/* Create / Edit modal */}
       {modal?.mode === 'create' && (
         <CreateAdminModal onClose={() => setModal(null)} onSubmit={handleCreate} />
       )}
@@ -213,17 +196,6 @@ function AdminList({ onNavigate, onViewStats, onLogout }) {
         <CreateAdminModal admin={modal.admin} onClose={() => setModal(null)} onSubmit={handleUpdate} />
       )}
 
-      {/* Email sent confirmation */}
-      {emailModal && (
-        <EmailSentModal
-          admin={emailModal.admin}
-          activationLink={emailModal.activationLink}
-          generatedPassword={emailModal.generatedPassword}
-          onClose={() => setEmailModal(null)}
-        />
-      )}
-
-      {/* Toast */}
       {toast && (
         <div className={`toast toast-${toast.type}`}>
           <span className="toast-icon">{toast.type === 'success' ? '✅' : '❌'}</span>

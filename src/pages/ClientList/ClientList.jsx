@@ -89,15 +89,18 @@ function ClientList({ onNavigate, onLogout }) {
     return pages
   }
 
-  /* ── KYC badge helper ─────────────────────────── */
   const kycBadge = (kyc) => {
     if (!kyc) return <span className="status-badge unused">Aucun KYC</span>
+
+    // Safety: if deletedAt is present, always show non_valide
+    const status = kyc.deletedAt ? 'non_valide' : kyc.status
+
     const map = {
       en_attente: { label: 'En attente', cls: 'en-attente' },
       valide:     { label: 'Validé',     cls: 'valide'     },
       non_valide: { label: 'Non valide', cls: 'non-valide' },
     }
-    const { label, cls } = map[kyc.status] ?? { label: kyc.status, cls: 'unknown' }
+    const { label, cls } = map[status] ?? { label: status, cls: 'unknown' }
     return <span className={`status-badge ${cls}`}>{label}</span>
   }
 
@@ -193,16 +196,17 @@ function ClientList({ onNavigate, onLogout }) {
                               : '-'}
                           </td>
 
-                          <td>
-                            {client.kyc && (
-                              <button
-                                className="btn-consulter"
-                                onClick={() => setDossier({ clientId: client.id })}
-                              >
-                                🔍 Consulter dossier
-                              </button>
-                            )}
-                          </td>
+                          {/* Actions column — show "Consulter" for ALL kyc statuses including non_valide */}
+                            <td>
+                              {client.kyc && (
+                                <button
+                                  className="btn-consulter"
+                                  onClick={() => setDossier({ clientId: client.id })}
+                                >
+                                  🔍 Consulter dossier
+                                </button>
+                              )}
+                            </td>
 
                         </tr>
                       ))

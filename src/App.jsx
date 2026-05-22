@@ -5,6 +5,7 @@ import AdminStats from './pages/AdminStats/AdminStats'
 import Dashboard from './pages/Dashboard/Dashboard'
 import ActivationCompte from './pages/ActivationCompte/ActivationCompte'
 import ClientList from './pages/ClientList/ClientList'
+import OrganisationList from './pages/OrganisationList/OrganisationList'   // ← ADD
 import KycRecordList from './pages/KycRecordList/KycRecordList'
 import ForgotPassword from './pages/Login/Forgotpassword'
 import ResetPassword from './pages/Login/ResetPassword'
@@ -43,15 +44,15 @@ function App() {
   const role = user?.role
 
   const [page, setPage] = useState(() => {
-    // Priority 1 — already logged in → always go to dashboard
+        // Priority 1 — already logged in → always go to dashboard
     if (isAuthenticated()) return 'dashboard'
     const token = getTokenFromUrl()
-    // Priority 2 — reset-password link (must NOT be authenticated)
+        // Priority 2 — reset-password link (must NOT be authenticated)
     if (token && isResetPasswordPath()) return 'reset-password'
-
+    
     // Priority 3 — activation link
     if (token) return 'activation-compte'
-
+    
     return 'login'
   })
 
@@ -71,19 +72,17 @@ function App() {
 
   // =========================
   // RESET PASSWORD PAGE
-  // /reset-password?token=...
-  // Guard: block if already authenticated
   // =========================
   if (page === 'reset-password') {
     if (isAuthenticated()) {
-      clearResetPasswordUrl()                          // ← clean the URL
+      clearResetPasswordUrl()
       return <Dashboard onNavigate={setPage} onLogout={handleLogout} />
     }
     return (
       <ResetPassword
         tokenProp={token || undefined}
         onSuccess={() => {
-          clearResetPasswordUrl()                      // ← clears /reset-password + ?token
+          clearResetPasswordUrl()
           setPage('login')
         }}
       />
@@ -92,23 +91,16 @@ function App() {
 
   // =========================
   // FORGOT PASSWORD PAGE
-  // Guard: block if already authenticated
   // =========================
   if (page === 'forgot-password') {
     if (isAuthenticated()) {
       return <Dashboard onNavigate={setPage} onLogout={handleLogout} />
     }
-    return (
-      <ForgotPassword
-        onBack={() => setPage('login')}
-      />
-    )
+    return <ForgotPassword onBack={() => setPage('login')} />
   }
 
   // =========================
   // ACTIVATION COMPTE PAGE
-  // /?token=...
-  // Guard: block if already authenticated
   // =========================
   if (page === 'activation-compte' && token) {
     if (isAuthenticated()) {
@@ -127,7 +119,6 @@ function App() {
 
   // =========================
   // LOGIN PAGE
-  // Guard: block if already authenticated
   // =========================
   if (page === 'login') {
     if (isAuthenticated()) {
@@ -135,16 +126,7 @@ function App() {
     }
     return (
       <Login
-        onLogin={() => {
-          const loggedUser = getUser()
-          if (loggedUser?.role === 'super_admin') {
-            setPage('dashboard')
-          } else if (loggedUser?.role === 'admin') {
-            setPage('dashboard')
-          } else {
-            setPage('dashboard')
-          }
-        }}
+        onLogin={() => setPage('dashboard')}
         onForgotPassword={() => setPage('forgot-password')}
       />
     )
@@ -154,17 +136,11 @@ function App() {
   // DASHBOARD
   // =========================
   if (page === 'dashboard') {
-    return (
-      <Dashboard
-        onNavigate={setPage}
-        onLogout={handleLogout}
-      />
-    )
+    return <Dashboard onNavigate={setPage} onLogout={handleLogout} />
   }
 
   // =========================
-  // ADMIN LIST
-  // ONLY SUPER ADMIN
+  // ADMIN LIST — super_admin only
   // =========================
   if (page === 'admins') {
     if (role !== 'super_admin') {
@@ -180,49 +156,46 @@ function App() {
   }
 
   // =========================
-  // CLIENT LIST
-  // ONLY ADMIN
+  // ORGANISATIONS — super_admin only
+  // =========================
+  if (page === 'organisations') {
+    if (role !== 'super_admin') {
+      return <Dashboard onNavigate={setPage} onLogout={handleLogout} />
+    }
+    return (
+      <OrganisationList
+        onNavigate={setPage}
+        onLogout={handleLogout}
+      />
+    )
+  }
+
+  // =========================
+  // CLIENT LIST — admin only
   // =========================
   if (page === 'clients') {
     if (role !== 'admin') {
       return <Dashboard onNavigate={setPage} onLogout={handleLogout} />
     }
-    return (
-      <ClientList
-        onNavigate={setPage}
-        onLogout={handleLogout}
-      />
-    )
+    return <ClientList onNavigate={setPage} onLogout={handleLogout} />
   }
 
   // =========================
   // KYC RECORDS
   // =========================
   if (page === 'kyc') {
-    return (
-      <KycRecordList
-        onNavigate={setPage}
-        onLogout={handleLogout}
-      />
-    )
+    return <KycRecordList onNavigate={setPage} onLogout={handleLogout} />
   }
 
-
   // =========================
-  // SETTINGS PAGE
-  // SUPER ADMIN & ADMIN
+  // SETTINGS
   // =========================
   if (page === 'settings') {
-    return (
-      <Settings
-        onNavigate={setPage}
-        onLogout={handleLogout}
-      />
-    )
+    return <Settings onNavigate={setPage} onLogout={handleLogout} />
   }
+
   // =========================
-  // ADMIN STATS
-  // ONLY SUPER ADMIN
+  // ADMIN STATS — super_admin only
   // =========================
   if (page === 'admin-stats' && selectedAdmin) {
     if (role !== 'super_admin') {
@@ -240,12 +213,7 @@ function App() {
   // =========================
   // FALLBACK
   // =========================
-  return (
-    <Dashboard
-      onNavigate={setPage}
-      onLogout={handleLogout}
-    />
-  )
+  return <Dashboard onNavigate={setPage} onLogout={handleLogout} />
 }
 
 export default App
