@@ -14,7 +14,7 @@ import OrganisationFormModal    from '../../components/modals/CreateOrganisation
 import OrganisationDetailModal  from '../../components/modals/OrganisationDetailModal'
 
 const BASE_URL  =  'http://localhost:3000'
-const PAGE_SIZE = 10
+  const PAGE_SIZE = 10
 
 function OrganisationList({ onNavigate, onLogout }) {
   const [organisations, setOrganisations] = useState([])

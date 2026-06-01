@@ -7,16 +7,15 @@ import { resetPassword } from '../../services/auth.service.js'
  *
  * Usage: token can come from URL query param (?token=xxx)
  * OR passed directly as a prop.
- *
- * Example router setup:
- *   <Route path="/reset-password" element={<ResetPassword onSuccess={() => navigate('/login')} />} />
  */
+
 function ResetPassword({ onSuccess, tokenProp }) {
   const [form, setForm] = useState({
     token: tokenProp || '',
     password: '',
     confirm_password: '',
   })
+
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [error, setError] = useState('')
@@ -29,39 +28,117 @@ function ResetPassword({ onSuccess, tokenProp }) {
     if (!tokenProp) {
       const params = new URLSearchParams(window.location.search)
       const urlToken = params.get('token')
+
       if (urlToken) {
-        setForm((prev) => ({ ...prev, token: urlToken }))
+        setForm((prev) => ({
+          ...prev,
+          token: urlToken,
+        }))
       }
     }
   }, [tokenProp])
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value })
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    })
+
     setError('')
-    setFieldErrors({ ...fieldErrors, [e.target.name]: '' })
+
+    setFieldErrors({
+      ...fieldErrors,
+      [e.target.name]: '',
+    })
   }
 
+  // PASSWORD VALIDATION
   const validate = () => {
     const errors = {}
-    if (!form.token.trim()) errors.token = 'Le token de réinitialisation est requis.'
-    if (form.password.length < 6) errors.password = 'Le mot de passe doit contenir au moins 6 caractères.'
-    if (form.password !== form.confirm_password) errors.confirm_password = 'Les mots de passe ne correspondent pas.'
+
+    // Regex:
+    // at least 1 lowercase
+    // at least 1 uppercase
+    // at least 1 number
+    // at least 1 special character
+    // minimum 8 characters
+
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_\-+=\\[\]\/~`]).{8,}$/
+
+    if (!form.token.trim()) {
+      errors.token = 'Le token de réinitialisation est requis.'
+    }
+
+    if (!passwordRegex.test(form.password)) {
+      errors.password =
+        'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.'
+    }
+
+    if (form.password !== form.confirm_password) {
+      errors.confirm_password =
+        'Les mots de passe ne correspondent pas.'
+    }
+
     return errors
   }
 
+  // PASSWORD STRENGTH
   const getPasswordStrength = (pwd) => {
     if (!pwd) return null
-    if (pwd.length < 6) return { level: 1, label: 'Trop court', color: '#ef4444' }
-    if (pwd.length < 8) return { level: 2, label: 'Faible', color: '#f97316' }
-    if (/[A-Z]/.test(pwd) && /[0-9]/.test(pwd) && pwd.length >= 8) return { level: 4, label: 'Fort', color: '#22c55e' }
-    return { level: 3, label: 'Moyen', color: '#eab308' }
+
+    const hasUpper = /[A-Z]/.test(pwd)
+    const hasLower = /[a-z]/.test(pwd)
+    const hasNumber = /\d/.test(pwd)
+    const hasSpecial =
+      /[!@#$%^&*(),.?":{}|<>_\-+=\\[\]\/~`]/.test(pwd)
+      
+    let score = 0
+
+    if (pwd.length >= 8) score++
+    if (hasUpper) score++
+    if (hasLower) score++
+    if (hasNumber) score++
+    if (hasSpecial) score++
+
+    if (score <= 2) {
+      return {
+        level: 1,
+        label: 'Faible',
+        color: '#ef4444',
+      }
+    }
+
+    if (score === 3) {
+      return {
+        level: 2,
+        label: 'Moyen',
+        color: '#f97316',
+      }
+    }
+
+    if (score === 4) {
+      return {
+        level: 3,
+        label: 'Bon',
+        color: '#eab308',
+      }
+    }
+
+    return {
+      level: 4,
+      label: 'Fort',
+      color: '#22c55e',
+    }
   }
 
   const strength = getPasswordStrength(form.password)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
     const errors = validate()
+
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors)
       return
@@ -71,10 +148,18 @@ function ResetPassword({ onSuccess, tokenProp }) {
     setError('')
 
     try {
-      await resetPassword(form.token, form.password, form.confirm_password)
+      await resetPassword(
+        form.token,
+        form.password,
+        form.confirm_password
+      )
+
       setSuccess(true)
     } catch (err) {
-      setError(err.message || 'Une erreur est survenue. Le lien est peut-être expiré.')
+      setError(
+        err.message ||
+          'Une erreur est survenue. Le lien est peut-être expiré.'
+      )
     } finally {
       setLoading(false)
     }
@@ -85,27 +170,49 @@ function ResetPassword({ onSuccess, tokenProp }) {
       <div className="rp-card">
         <div className="rp-header">
           <div className="rp-logo">A</div>
-          <h1 className="rp-title">Nouveau mot de passe</h1>
-          <p className="rp-subtitle">Choisissez un mot de passe sécurisé pour votre compte</p>
+
+          <h1 className="rp-title">
+            Nouveau mot de passe
+          </h1>
+
+          <p className="rp-subtitle">
+            Choisissez un mot de passe sécurisé
+            pour votre compte
+          </p>
         </div>
 
         {success ? (
           <div className="rp-success-box">
             <div className="rp-success-icon">✅</div>
-            <h2 className="rp-success-title">Mot de passe mis à jour !</h2>
+
+            <h2 className="rp-success-title">
+              Mot de passe mis à jour !
+            </h2>
+
             <p className="rp-success-text">
-              Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter.
+              Votre mot de passe a été
+              réinitialisé avec succès.
             </p>
-            <button className="btn-login-redirect" onClick={onSuccess}>
+
+            <button
+              className="btn-login-redirect"
+              onClick={onSuccess}
+            >
               Se connecter →
             </button>
           </div>
         ) : (
-          <form className="rp-form" onSubmit={handleSubmit}>
-            {/* Token field — hidden if already filled from URL */}
+          <form
+            className="rp-form"
+            onSubmit={handleSubmit}
+          >
+            {/* Token field */}
             {!form.token && (
               <div className="form-group">
-                <label htmlFor="token">Token de réinitialisation</label>
+                <label htmlFor="token">
+                  Token de réinitialisation
+                </label>
+
                 <input
                   id="token"
                   name="token"
@@ -114,31 +221,48 @@ function ResetPassword({ onSuccess, tokenProp }) {
                   value={form.token}
                   onChange={handleChange}
                 />
-                {fieldErrors.token && <span className="field-error">{fieldErrors.token}</span>}
+
+                {fieldErrors.token && (
+                  <span className="field-error">
+                    {fieldErrors.token}
+                  </span>
+                )}
               </div>
             )}
 
+            {/* PASSWORD */}
             <div className="form-group">
-              <label htmlFor="password">Nouveau mot de passe</label>
+              <label htmlFor="password">
+                Nouveau mot de passe
+              </label>
+
               <div className="input-password">
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={
+                    showPassword ? 'text' : 'password'
+                  }
                   placeholder="••••••••"
                   value={form.password}
                   onChange={handleChange}
                   required
                 />
+
                 <button
                   type="button"
                   className="toggle-password"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() =>
+                    setShowPassword(!showPassword)
+                  }
                   aria-label="Afficher/masquer le mot de passe"
                 >
                   {showPassword ? '🙈' : '👁️'}
                 </button>
               </div>
+
+
+              {/* STRENGTH */}
               {form.password && strength && (
                 <div className="password-strength">
                   <div className="strength-bars">
@@ -146,52 +270,89 @@ function ResetPassword({ onSuccess, tokenProp }) {
                       <div
                         key={i}
                         className="strength-bar"
-                        style={{ backgroundColor: i <= strength.level ? strength.color : undefined }}
+                        style={{
+                          backgroundColor:
+                            i <= strength.level
+                              ? strength.color
+                              : undefined,
+                        }}
                       />
                     ))}
                   </div>
-                  <span className="strength-label" style={{ color: strength.color }}>
+
+                  <span
+                    className="strength-label"
+                    style={{
+                      color: strength.color,
+                    }}
+                  >
                     {strength.label}
                   </span>
                 </div>
               )}
-              {fieldErrors.password && <span className="field-error">{fieldErrors.password}</span>}
+
+              {fieldErrors.password && (
+                <span className="field-error">
+                  {fieldErrors.password}
+                </span>
+              )}
             </div>
 
+            {/* CONFIRM PASSWORD */}
             <div className="form-group">
-              <label htmlFor="confirm_password">Confirmer le mot de passe</label>
+              <label htmlFor="confirm_password">
+                Confirmer le mot de passe
+              </label>
+
               <div className="input-password">
                 <input
                   id="confirm_password"
                   name="confirm_password"
-                  type={showConfirm ? 'text' : 'password'}
+                  type={
+                    showConfirm ? 'text' : 'password'
+                  }
                   placeholder="••••••••"
                   value={form.confirm_password}
                   onChange={handleChange}
                   required
                 />
+
                 <button
                   type="button"
                   className="toggle-password"
-                  onClick={() => setShowConfirm(!showConfirm)}
+                  onClick={() =>
+                    setShowConfirm(!showConfirm)
+                  }
                   aria-label="Afficher/masquer la confirmation"
                 >
                   {showConfirm ? '🙈' : '👁️'}
                 </button>
               </div>
+
               {fieldErrors.confirm_password && (
-                <span className="field-error">{fieldErrors.confirm_password}</span>
+                <span className="field-error">
+                  {fieldErrors.confirm_password}
+                </span>
               )}
             </div>
 
+            {/* GLOBAL ERROR */}
             {error && (
               <div className="rp-error">
-                <span className="rp-error-icon">⚠</span>
+                <span className="rp-error-icon">
+                  ⚠
+                </span>
+
                 {error}
               </div>
             )}
 
-            <button type="submit" className="btn-submit" disabled={loading}>
+            {/* SUBMIT */}
+            <button
+              type="submit"
+              className="btn-submit"
+              disabled={loading}
+            >
               {loading ? (
                 <span className="btn-loading">
                   <span className="spinner" />

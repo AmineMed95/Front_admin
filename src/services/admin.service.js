@@ -1,9 +1,7 @@
-// src/services/admin.service.js
-const API_URL = 'http://localhost:3000'
+const API_URL = import.meta.env.VITE_API_URL 
 
 const getHeaders = () => {
-  const token =
-    localStorage.getItem('token') || sessionStorage.getItem('token')
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token')
   return {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
@@ -15,12 +13,19 @@ const mapAdmin = (admin) => ({
   firstName:       admin.first_name,
   lastName:        admin.last_name,
   email:           admin.email,
-  organisation:   admin.organisation?.name_organisation ?? '—',
-  organisationId: admin.organisation?.id ?? null,
   phone:           admin.phone,
+  role:            admin.role?.name ?? admin.role ?? 'admin',
   createdAt:       admin.created_at,
   status:          admin.status?.code === 'actif' ? 'active' : 'pending',
   activationToken: admin.activation_token,
+  organisation:    admin.organisation
+    ? {
+        id:                admin.organisation.id,
+        name_organisation: admin.organisation.name_organisation,
+        logo_organisation: admin.organisation.logo_organisation,
+      }
+    : null,
+  organisationId:  admin.organisation_id ?? admin.organisation?.id ?? null,
 })
 
 export async function getAdmins() {
@@ -49,7 +54,7 @@ export async function createAdmin({ firstName, lastName, email, organisationId, 
       first_name:      firstName,
       last_name:       lastName,
       email,
-      organisation_id: Number(organisationId),   // ← was organization_name
+      organisation_id: Number(organisationId),
       phone,
     }),
   })
@@ -60,7 +65,7 @@ export async function createAdmin({ firstName, lastName, email, organisationId, 
   return res.json()
 }
 
-export async function updateAdmin(id, { firstName, lastName, email, organisationId, phone }) {
+export async function updateAdmin(id, { firstName, lastName, email, phone }) {
   const res = await fetch(`${API_URL}/users/update-admin/${id}`, {
     method: 'PATCH',
     headers: getHeaders(),
@@ -68,7 +73,7 @@ export async function updateAdmin(id, { firstName, lastName, email, organisation
       first_name:      firstName,
       last_name:       lastName,
       email,
-      organisation_id: Number(organisationId),   // ← was organization_name
+      //organisation_id: Number(organisationId),   // ← was organization_name
       phone,
     }),
   })
@@ -91,8 +96,6 @@ export async function deleteAdmin(id) {
   }
   return res.json()
 }
-
-// ── Change password ────────────────────────────────────────────────────────
 
 export async function changePassword({ current_password, new_password }) {
   try {

@@ -18,6 +18,27 @@
   flex-wrap: wrap;
 }
 
+.lang-select {
+  padding: 0.45rem 2rem 0.45rem 0.75rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 0.6rem center;
+  -webkit-appearance: none;
+  appearance: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.lang-select:hover { border-color: #0f3460; }
+.lang-select:focus {
+  outline: none;
+  border-color: #0f3460;
+  box-shadow: 0 0 0 3px rgba(15, 52, 96, 0.12);
+}
+
 .settings-page-title {
   margin: 0 0 0.25rem;
   font-size: 1.6rem;
@@ -487,4 +508,40 @@
     width: 100%;
     text-align: center;
   }
+}
+
+/* ── Language switcher ── */
+
+.lang-switcher {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.lang-btn {
+  padding: 0.4rem 0.9rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #374151;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.lang-btn:hover {
+  border-color: #0f3460;
+  color: #0f3460;
+}
+
+.lang-btn--active {
+  background: linear-gradient(135deg, #0f3460, #533483);
+  border-color: transparent;
+  color: #fff;
+}
+
+.lang-btn--active:hover {
+  color: #fff;
 }

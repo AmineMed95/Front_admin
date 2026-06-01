@@ -1,34 +1,50 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import Sidebar from '../../components/ui/Sidebar/Sidebar'
-import { getUser } from '../../services/auth.service'
-import ChangePasswordModal from '../../components/modals/ChangePasswordModal'   
+import { getUser, setUser } from '../../services/auth.service'
+import ChangePasswordModal from '../../components/modals/ChangePasswordModal'
+import UpdateInfoModal from '../../components/modals/UpdateInfoModal'
+import { changeLanguage } from '../../i18n/index.js'
 import './Settings.css'
 
 function Settings({ onNavigate, onLogout }) {
-  const user     = getUser()
-  const fullName = user ? `${user.firstName} ${user.lastName}` : 'Utilisateur'
-  const initials = user
-    ? `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase()
-    : 'U'
-  const role = user?.role ?? 'admin'
+  const { t, i18n } = useTranslation()
+  const [currentUser, setCurrentUser] = useState(getUser())
 
-  const [modal, setModal] = useState(null) // 'change-password' | null
+  const fullName = currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : t('common.loading')
+  const initials = currentUser
+    ? `${currentUser.firstName?.[0] ?? ''}${currentUser.lastName?.[0] ?? ''}`.toUpperCase()
+    : 'U'
+  const role = currentUser?.role ?? 'admin'
+
+  const [modal, setModal] = useState(null)
+
+  const handleUpdated = (updatedAdmin) => {
+    setUser(updatedAdmin)
+    setCurrentUser(getUser())
+  }
+
+  const handleLanguageChange = (lang) => {
+    changeLanguage(lang)
+  }
 
   return (
     <div className="page-layout">
-      <Sidebar activePage="settings" onNavigate={onNavigate} onLogout={onLogout} />
+      <Sidebar
+        activePage="settings"
+        onNavigate={onNavigate}
+        onLogout={onLogout}
+        user={currentUser}
+      />
 
       <main className="page-content">
         <div className="settings-page">
 
-          {/* ── Page header ── */}
           <div className="settings-page-header">
             <div>
-              <h1 className="settings-page-title">Paramètres</h1>
-              <p className="settings-page-sub">Gérez vos préférences et la sécurité de votre compte</p>
+              <h1 className="settings-page-title">{t('settings.title')}</h1>
+              <p className="settings-page-sub">{t('settings.subtitle')}</p>
             </div>
-
-            {/* Profile pill */}
             <div className="settings-profile-pill">
               <div className="settings-pill-avatar">{initials}</div>
               <div>
@@ -38,58 +54,78 @@ function Settings({ onNavigate, onLogout }) {
             </div>
           </div>
 
-          {/* ── Section: Sécurité ── */}
-          <section className="settings-section">
-            <h2 className="settings-section-title">🛡️ Sécurité</h2>
-            <div className="settings-cards">
+          {role === 'admin' && (
+            <section className="settings-section">
+              <h2 className="settings-section-title">{t('settings.profile.title')}</h2>
+              <div className="settings-cards">
+                <div className="settings-card">
+                  <div className="settings-card-icon settings-card-icon--purple">✏️</div>
+                  <div className="settings-card-body">
+                    <p className="settings-card-label">{t('settings.profile.personalInfo')}</p>
+                    <p className="settings-card-desc">{t('settings.profile.personalInfoDesc')}</p>
+                  </div>
+                  <button className="settings-card-btn" onClick={() => setModal('update-info')}>
+                    {t('settings.btnEdit')}
+                  </button>
+                </div>
+              </div>
+            </section>
+          )}
 
-              {/* Card — change password */}
+          <section className="settings-section">
+            <h2 className="settings-section-title">{t('settings.security.title')}</h2>
+            <div className="settings-cards">
               <div className="settings-card">
                 <div className="settings-card-icon settings-card-icon--blue">🔒</div>
                 <div className="settings-card-body">
-                  <p className="settings-card-label">Mot de passe</p>
-                  <p className="settings-card-desc">Modifiez votre mot de passe de connexion</p>
+                  <p className="settings-card-label">{t('settings.security.password')}</p>
+                  <p className="settings-card-desc">{t('settings.security.passwordDesc')}</p>
                 </div>
-                <button
-                  className="settings-card-btn"
-                  onClick={() => setModal('change-password')}
-                >
-                  Modifier
+                <button className="settings-card-btn" onClick={() => setModal('change-password')}>
+                  {t('settings.btnEdit')}
                 </button>
               </div>
-
             </div>
           </section>
 
-          {/* ── Section: Préférences ── */}
           <section className="settings-section">
-            <h2 className="settings-section-title">🌐 Préférences</h2>
+            <h2 className="settings-section-title">{t('settings.preferences.title')}</h2>
             <div className="settings-cards">
-
-              {/* Card — langue (disabled / coming soon) */}
-              <div className="settings-card settings-card--disabled">
+              <div className="settings-card">
                 <div className="settings-card-icon settings-card-icon--gray">🌍</div>
                 <div className="settings-card-body">
-                  <p className="settings-card-label">
-                    Langue
-                    <span className="settings-card-badge">Bientôt disponible</span>
-                  </p>
-                  <p className="settings-card-desc">Choisissez la langue de l'interface</p>
+                  <p className="settings-card-label">{t('settings.preferences.language')}</p>
+                  <p className="settings-card-desc">{t('settings.preferences.languageDesc')}</p>
                 </div>
-                <button className="settings-card-btn settings-card-btn--disabled" disabled>
-                  Modifier
-                </button>
+                <select
+                className="lang-select"
+                value={i18n.language}
+                onChange={(e) => handleLanguageChange(e.target.value)}
+              >
+                {['fr', 'en', 'ar'].map((lang) => (
+                  <option key={lang} value={lang}>
+                    {t(`settings.languages.${lang}`)}
+                  </option>
+                ))}
+              </select>
               </div>
-
             </div>
           </section>
 
         </div>
       </main>
 
-      {/* ── Modal ── */}
       {modal === 'change-password' && (
         <ChangePasswordModal onClose={() => setModal(null)} />
+      )}
+      {modal === 'update-info' && (
+        <UpdateInfoModal
+          onClose={() => setModal(null)}
+          onUpdated={(updated) => {
+            handleUpdated(updated)
+            setModal(null)
+          }}
+        />
       )}
     </div>
   )

@@ -8,7 +8,6 @@ import Sidebar from '../../components/ui/Sidebar/Sidebar'
 import KycDossierModal from '../../components/modals/KycDossierModal'
 import CreateClientModal from '../../components/modals/CreateClientModal'
 
-const BASE_URL = 'http://localhost:3000'
 
 function KycRecordList({ onNavigate, onLogout }) {
   const [records, setRecords]   = useState([])
