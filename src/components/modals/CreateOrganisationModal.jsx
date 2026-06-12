@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import './CreateOrganisationModal.css'
 import { getLogoUrl } from '../../services/organisation.service'
 
 function CreateOrganisationModal({ mode, initial, onClose, onSubmit }) {
+  const { t } = useTranslation()
   const isEdit = mode === 'edit'
 
   const [form, setForm] = useState({
@@ -11,11 +13,9 @@ function CreateOrganisationModal({ mode, initial, onClose, onSubmit }) {
     phone_organisation:   initial?.phone_organisation   ?? '',
   })
   const [logoFile,    setLogoFile]    = useState(null)
-  const [logoPreview, setLogoPreview] = useState(
-    () => getLogoUrl(initial?.logo_organisation)
-  )
-  const [loading, setLoading] = useState(false)
-  const [errors,  setErrors]  = useState({})
+  const [logoPreview, setLogoPreview] = useState(() => getLogoUrl(initial?.logo_organisation))
+  const [loading,     setLoading]     = useState(false)
+  const [errors,      setErrors]      = useState({})
   const fileRef = useRef()
 
   useEffect(() => () => {
@@ -24,36 +24,17 @@ function CreateOrganisationModal({ mode, initial, onClose, onSubmit }) {
 
   const validate = () => {
     const errs = {}
-
-    // ✅ Logo required
-    if (!logoFile && !logoPreview) {
-      errs.logo = 'Le logo est obligatoire.'
-    }
-
-    // ✅ Nom required
-    if (!form.name_organisation.trim()) {
-      errs.name_organisation = 'Le nom est obligatoire.'
-    } else if (form.name_organisation.trim().length < 2) {
-      errs.name_organisation = 'Le nom doit contenir au moins 2 caractères.'
-    }
-
-    // ✅ Adresse required
-    if (!form.adresse_organisation.trim()) {
-      errs.adresse_organisation = "L'adresse est obligatoire."
-    } else if (form.adresse_organisation.trim().length < 5) {
-      errs.adresse_organisation = "L'adresse doit contenir au moins 5 caractères."
-    }
-
-    // ✅ Téléphone required
+    if (!logoFile && !logoPreview)                         errs.logo                = t('createOrganisationModal.validation.logoRequired')
+    if (!form.name_organisation.trim())                    errs.name_organisation   = t('createOrganisationModal.validation.nameRequired')
+    else if (form.name_organisation.trim().length < 2)     errs.name_organisation   = t('createOrganisationModal.validation.nameTooShort')
+    if (!form.adresse_organisation.trim())                 errs.adresse_organisation = t('createOrganisationModal.validation.addressRequired')
+    else if (form.adresse_organisation.trim().length < 5)  errs.adresse_organisation = t('createOrganisationModal.validation.addressTooShort')
     if (!form.phone_organisation.trim()) {
-      errs.phone_organisation = 'Le téléphone est obligatoire.'
+      errs.phone_organisation = t('createOrganisationModal.validation.phoneRequired')
     } else {
       const clean = form.phone_organisation.replace(/\s/g, '')
-       if (!/^(\+216)?[0-9]{8}$/.test(clean)) {
-        errs.phone_organisation = 'Numéro invalide (8 chiffres)'
-      }
+      if (!/^(\+216)?[0-9]{8}$/.test(clean)) errs.phone_organisation = t('createOrganisationModal.validation.invalidPhone')
     }
-
     return errs
   }
 
@@ -67,11 +48,11 @@ function CreateOrganisationModal({ mode, initial, onClose, onSubmit }) {
     const file = e.target.files[0]
     if (!file) return
     if (!file.type.startsWith('image/')) {
-      setErrors((prev) => ({ ...prev, logo: 'Le fichier doit être une image.' }))
+      setErrors((prev) => ({ ...prev, logo: t('createOrganisationModal.validation.invalidFile') }))
       return
     }
     if (file.size > 2 * 1024 * 1024) {
-      setErrors((prev) => ({ ...prev, logo: "L'image ne doit pas dépasser 2 Mo." }))
+      setErrors((prev) => ({ ...prev, logo: t('createOrganisationModal.validation.fileTooLarge') }))
       return
     }
     setErrors((prev) => ({ ...prev, logo: undefined }))
@@ -95,7 +76,7 @@ function CreateOrganisationModal({ mode, initial, onClose, onSubmit }) {
       setLoading(true)
       await onSubmit(fd)
     } catch (err) {
-      setErrors((prev) => ({ ...prev, submit: err.message || 'Une erreur est survenue.' }))
+      setErrors((prev) => ({ ...prev, submit: err.message || t('createOrganisationModal.validation.errorDefault') }))
     } finally {
       setLoading(false)
     }
@@ -107,14 +88,13 @@ function CreateOrganisationModal({ mode, initial, onClose, onSubmit }) {
 
         <div className="modal-header">
           <h3 className="modal-title">
-            {isEdit ? "✏️ Modifier l'organisation" : '🏢 Nouvelle organisation'}
+            {isEdit ? t('createOrganisationModal.titleEdit') : t('createOrganisationModal.titleCreate')}
           </h3>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
 
         <form onSubmit={handleSubmit} className="org-form" noValidate>
 
-          {/* Logo */}
           <div
             className={`org-logo-upload ${errors.logo ? 'org-logo-upload--error' : ''}`}
             onClick={() => fileRef.current.click()}
@@ -124,20 +104,18 @@ function CreateOrganisationModal({ mode, initial, onClose, onSubmit }) {
                   onError={(e) => { e.currentTarget.style.display = 'none' }} />
               : <div className="org-logo-placeholder">
                   <span className="org-logo-icon">🏢</span>
-                  <span>Cliquez pour ajouter un logo <span className="required">*</span></span>
+                  <span>{t('createOrganisationModal.logoPlaceholder')} <span className="required">*</span></span>
                 </div>
             }
-            <div className="org-logo-overlay"><span>📷 Changer</span></div>
+            <div className="org-logo-overlay"><span>📷</span></div>
           </div>
           {errors.logo && <span className="field-error">{errors.logo}</span>}
 
-          <input ref={fileRef} type="file" accept="image/*"
-            style={{ display: 'none' }} onChange={handleFile} />
+          <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFile} />
 
-          {/* Nom */}
           <div className="org-field">
             <label className="org-label">
-              Nom de l'organisation <span className="required">*</span>
+              {t('createOrganisationModal.name')} <span className="required">*</span>
             </label>
             <input
               className={`org-input ${errors.name_organisation ? 'input-error' : ''}`}
@@ -148,10 +126,9 @@ function CreateOrganisationModal({ mode, initial, onClose, onSubmit }) {
             {errors.name_organisation && <span className="field-error">{errors.name_organisation}</span>}
           </div>
 
-          {/* Adresse */}
           <div className="org-field">
             <label className="org-label">
-              Adresse <span className="required">*</span>
+              {t('createOrganisationModal.address')} <span className="required">*</span>
             </label>
             <input
               className={`org-input ${errors.adresse_organisation ? 'input-error' : ''}`}
@@ -162,10 +139,9 @@ function CreateOrganisationModal({ mode, initial, onClose, onSubmit }) {
             {errors.adresse_organisation && <span className="field-error">{errors.adresse_organisation}</span>}
           </div>
 
-          {/* Téléphone */}
           <div className="org-field">
             <label className="org-label">
-              Téléphone <span className="required">*</span>
+              {t('createOrganisationModal.phone')} <span className="required">*</span>
             </label>
             <input
               className={`org-input ${errors.phone_organisation ? 'input-error' : ''}`}
@@ -180,10 +156,12 @@ function CreateOrganisationModal({ mode, initial, onClose, onSubmit }) {
 
           <div className="org-form-footer">
             <button type="button" className="btn-cancel" onClick={onClose} disabled={loading}>
-              Annuler
+              {t('createOrganisationModal.btnCancel')}
             </button>
             <button type="submit" className="btn-submit" disabled={loading}>
-              {loading ? 'Enregistrement...' : isEdit ? 'Mettre à jour' : 'Créer'}
+              {loading
+                ? t('createOrganisationModal.btnSaving')
+                : isEdit ? t('createOrganisationModal.btnSave') : t('createOrganisationModal.btnCreate')}
             </button>
           </div>
 

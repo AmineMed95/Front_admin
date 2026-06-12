@@ -29,7 +29,7 @@ function Settings({ onNavigate, onLogout }) {
   }
 
   return (
-    <div className="page-layout">
+    <div className="page-layout" dir={i18n.language === 'ar' ? 'rtl' : 'ltr'} style={{ flexDirection: i18n.language === 'ar' ? 'row-reverse' : 'row' }}>
       <Sidebar
         activePage="settings"
         onNavigate={onNavigate}

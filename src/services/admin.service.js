@@ -1,12 +1,7 @@
-const API_URL = import.meta.env.VITE_API_URL 
+import { getHeaders } from './api'
+import i18n from '../i18n/index.js'
 
-const getHeaders = () => {
-  const token = localStorage.getItem('token') || sessionStorage.getItem('token')
-  return {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`,
-  }
-}
+const API_URL = import.meta.env.VITE_API_URL
 
 const mapAdmin = (admin) => ({
   id:              admin.id,
@@ -33,7 +28,7 @@ export async function getAdmins() {
     headers: getHeaders(),
   })
   if (!res.ok) {
-    let errorMessage = 'Failed to fetch admins'
+    let errorMessage = i18n.t('errors.fetchAdminsFailed')
     try {
       const errorBody = await res.json()
       errorMessage = errorBody.message || errorMessage
@@ -60,7 +55,7 @@ export async function createAdmin({ firstName, lastName, email, organisationId, 
   })
   if (!res.ok) {
     const err = await res.json()
-    throw new Error(err.message || 'Failed to create admin')
+    throw new Error(err.message || i18n.t('errors.createAdminFailed'))
   }
   return res.json()
 }
@@ -79,7 +74,7 @@ export async function updateAdmin(id, { firstName, lastName, email, phone }) {
   })
   if (!res.ok) {
     const err = await res.json()
-    throw new Error(err.message || 'Failed to update admin')
+    throw new Error(err.message || i18n.t('errors.updateAdminFailed'))
   }
   const data = await res.json()
   return mapAdmin(data.data)
@@ -92,7 +87,7 @@ export async function deleteAdmin(id) {
   })
   if (!res.ok) {
     const err = await res.json()
-    throw new Error(err.message || 'Failed to delete admin')
+    throw new Error(err.message || i18n.t('errors.deleteAdminFailed'))
   }
   return res.json()
 }
@@ -111,8 +106,8 @@ export async function changePassword({ current_password, new_password }) {
       message:
         data?.message ||
         (res.status === 401
-          ? 'Mot de passe actuel incorrect.'
-          : 'Une erreur est survenue. Veuillez réessayer.'),
+          ? i18n.t('errors.wrongCurrentPassword')
+          : i18n.t('errors.generic')),
     }
   } catch (err) {
     return { success: false, message: err.message }

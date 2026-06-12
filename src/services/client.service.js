@@ -1,12 +1,7 @@
-const API_URL = import.meta.env.VITE_API_URL 
+import { getHeaders } from './api'
+import i18n from '../i18n/index.js'
 
-
-const getHeaders = () => ({
-  'Content-Type': 'application/json',
-  Authorization: `Bearer ${
-    localStorage.getItem('token') || sessionStorage.getItem('token')
-  }`,
-})
+const API_URL = import.meta.env.VITE_API_URL
 
 const mapClient = (client) => ({
   id: client.id,
@@ -45,7 +40,7 @@ export async function getClients() {
   const res = await fetch(`${API_URL}/clients/list`, {
     headers: getHeaders(),
   })
-  if (!res.ok) throw new Error('Failed to fetch clients')
+  if (!res.ok) throw new Error(i18n.t('errors.fetchClientsFailed'))
   const data = await res.json()
   return data.map(mapClient)
 }
@@ -65,7 +60,7 @@ export async function createClient(form) {
   const data = await res.json()
 
   if (!res.ok) {
-    throw new Error(data?.message || 'Erreur lors de la création du client.')
+    throw new Error(data?.message || i18n.t('errors.createClientFailed'))
   }
 
   return mapClient(data)
